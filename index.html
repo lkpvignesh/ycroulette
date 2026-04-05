@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YC Roulette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FFF8F0;
+    --cream2: #FFF0E4;
+    --cream3: #FFE8D4;
+    --orange: #E8703A;
+    --orange-light: #FFF0E8;
+    --orange-dark: #C45820;
+    --green: #3BAD7A;
+    --green-light: #E8F8F0;
+    --green-dark: #2A8A5C;
+    --sand: #E8D8C4;
+    --sand2: #D4C4B0;
+    --ink: #1E1A16;
+    --ink2: #3A332A;
+    --muted: #9A8A7A;
+    --muted2: #C4B4A4;
+    --card-bg: #FFFFFF;
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    background: #F0E8DC;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    padding: 24px 16px;
+  }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .stage-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #A89888;
+  }
+
+  /* ── PHONE SHELL ─────────────────────────────────── */
+  .phone {
+    width: 360px;
+    height: 740px;
+    background: var(--cream);
+    border-radius: 44px;
+    border: 3px solid var(--sand);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-notch {
+    height: 28px;
+    background: var(--ink);
+    border-radius: 0 0 18px 18px;
+    width: 100px;
+    margin: 0 auto;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ── SCREEN SYSTEM ───────────────────────────────── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+  .screen.active { display: flex; }
+
+  /* ── SHARED HEADER ───────────────────────────────── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 8px;
+    flex-shrink: 0;
+  }
+
+  .game-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .game-logo em { color: var(--orange); font-style: normal; }
+
+  .round-pill {
+    background: var(--orange-light);
+    color: var(--orange);
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 99px;
+    letter-spacing: 0.3px;
+  }
+
+  .progress-track {
+    display: flex;
+    gap: 5px;
+    padding: 0 20px 10px;
+    flex-shrink: 0;
+  }
+  .prog-seg {
+    flex: 1;
+    height: 5px;
+    background: var(--sand);
+    border-radius: 99px;
+    transition: background 0.3s;
+  }
+  .prog-seg.done { background: var(--orange); }
+  .prog-seg.partial { background: var(--orange-dark); }
+
+  /* ── SCREEN 1: HOME ──────────────────────────────── */
+  #s-home {
+    background: var(--cream);
+    justify-content: space-between;
+  }
+
+  .home-hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 28px 10px;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .home-badge {
+    background: var(--orange);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 99px;
+  }
+
+  .home-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 48px;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .home-title span { color: var(--orange); }
+
+  .home-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 600;
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  .how-card {
+    background: var(--card-bg);
+    border-radius: 18px;
+    border: 1.5px solid var(--sand);
+    padding: 14px 16px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .how-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .how-num {
+    width: 22px;
+    height: 22px;
+    background: var(--orange-light);
+    color: var(--orange);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .how-text {
+    font-size: 12px;
+    color: var(--ink2);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .home-footer {
+    padding: 16px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .stat-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .stat-chip {
+    flex: 1;
+    background: var(--cream2);
+    border-radius: 12px;
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid var(--sand);
+  }
+
+  .stat-chip-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+  }
+
+  .stat-chip-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted2);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── SCREEN 2: STARTUP CARD ──────────────────────── */
+  #s-card { background: var(--cream); }
+
+  .card-body {
+    flex: 1;
+    padding: 4px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .startup-card {
+    background: var(--card-bg);
+    border-radius: 22px;
+    border: 1.5px solid var(--sand);
+    border-left: 4px solid var(--orange);
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .startup-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .company-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    color: var(--ink);
+    line-height: 1.05;
+    flex: 1;
+  }
+
+  .batch-tag {
+    background: var(--orange-light);
+    color: var(--orange);
+    font-size: 15px;
+    font-weight: 900;
+    font-family: 'DM Serif Display', serif;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1.5px solid var(--orange);
+    flex-shrink: 0;
+    margin-left: 10px;
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .batch-tag-label {
+    display: block;
+    font-family: 'Nunito', sans-serif;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--orange-dark);
+    opacity: 0.75;
+    margin-bottom: 1px;
+  }
+
+  .company-blurb {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.6;
+    letter-spacing: -0.1px;
+  }
+
+  .guess-preview-row {
+    display: flex;
+    gap: 6px;
+  }
+
+  .guess-preview {
+    flex: 1;
+    background: var(--cream2);
+    border: 1.5px dashed var(--sand2);
+    border-radius: 12px;
+    padding: 8px 6px;
+    text-align: center;
+  }
+
+  .guess-preview-q {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--sand2);
+  }
+
+  .guess-preview-lbl {
+    font-size: 8px;
+    font-weight: 800;
+    color: var(--muted2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .info-strip {
+    background: var(--green-light);
+    border: 1.5px solid #B8E8D0;
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .info-text {
+    font-size: 11.5px;
+    color: var(--green-dark);
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  .score-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px 18px;
+    flex-shrink: 0;
+    border-top: 1.5px solid var(--cream2);
+    margin-top: auto;
+  }
+
+  .sf-item {}
+  .sf-lbl { font-size: 9px; font-weight: 800; color: var(--muted2); letter-spacing: 1.5px; text-transform: uppercase; }
+  .sf-val { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--ink); line-height: 1; }
+
+  /* ── SCREEN 3: GUESS STEPS ───────────────────────── */
+  #s-guess {
+    background: var(--cream);
+    overflow: hidden;
+  }
+
+  .guess-step-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .guess-step {
+    position: absolute;
+    inset: 0;
+    padding: 4px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .guess-step.active {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .guess-step.exit {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  .step-indicator {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 0 2px 2px;
+  }
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sand);
+    transition: all 0.2s;
+  }
+
+  .step-dot.active { background: var(--orange); width: 22px; border-radius: 99px; }
+  .step-dot.done { background: var(--green); }
+
+  .step-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-left: 4px;
+  }
+
+  .context-mini {
+    background: var(--card-bg);
+    border-radius: 14px;
+    border: 1.5px solid var(--sand);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .context-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  .context-batch {
+    background: var(--orange-light);
+    color: var(--orange);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 8px;
+  }
+
+  .guess-question {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1.2;
+    padding: 0 2px;
+  }
+
+  /* YEAR STEP */
+  .year-big-display {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1.5px solid var(--sand);
+    padding: 20px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .year-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 56px;
+    color: var(--orange);
+    line-height: 1;
+    text-align: center;
+    letter-spacing: -1px;
+  }
+
+  .year-hint {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted2);
+    letter-spacing: 0.3px;
+  }
+
+  .styled-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--cream2);
+    border-radius: 99px;
+    outline: none;
+  }
+
+  .styled-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    background: var(--orange);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(232,112,58,0.35);
+  }
+
+  .year-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted2);
+  }
+
+
+  /* FUNDING STEP */
+  .fund-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .fund-option {
+    flex: 1;
+    background: var(--card-bg);
+    border: 2px solid var(--sand);
+    border-radius: 16px;
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.18s;
+  }
+
+  .fund-option:active { transform: scale(0.98); }
+
+  .fund-option.selected {
+    border-color: var(--orange);
+    background: var(--orange-light);
+  }
+
+  .fund-option-label {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--ink);
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .fund-option.selected .fund-option-label { color: var(--orange); }
+
+  .fund-option-sub {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .fund-option-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--sand2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.18s;
+  }
+
+  .fund-option.selected .fund-option-check {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+
+  .checkmark {
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .fund-option.selected .checkmark { opacity: 1; }
+
+  /* INDUSTRY STEP */
+  .ind-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    flex: 1;
+  }
+
+  .ind-option {
+    background: var(--card-bg);
+    border: 2px solid var(--sand);
+    border-radius: 14px;
+    padding: 12px 10px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ink2);
+    transition: all 0.18s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .ind-option:active { transform: scale(0.97); }
+
+  .ind-option.selected {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green-dark);
+  }
+
+  .ind-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  /* GUESS FOOTER */
+  .guess-footer {
+    padding: 10px 20px 20px;
+    flex-shrink: 0;
+  }
+
+  /* ── SCREEN 4: REVEAL ────────────────────────────── */
+  #s-reveal { background: var(--cream); }
+
+  .reveal-body {
+    flex: 1;
+    padding: 4px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .reveal-company {
+    background: var(--card-bg);
+    border-radius: 18px;
+    border: 1.5px solid var(--sand);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .reveal-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--ink);
+  }
+
+  .reveal-batch {
+    background: var(--orange-light);
+    color: var(--orange);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 8px;
+  }
+
+  .reveal-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .reveal-row {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1.5px solid var(--sand);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+  }
+
+  .reveal-row.shown { opacity: 1; transform: translateY(0); }
+
+  .reveal-row.correct { border-color: var(--green); background: var(--green-light); }
+  .reveal-row.partial { border-color: #F0C040; background: #FFFBE8; }
+  .reveal-row.wrong { border-color: #E85050; background: #FFF0F0; }
+
+  .reveal-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    font-style: normal;
+  }
+
+  .correct .reveal-icon { background: #B8ECCC; }
+  .partial .reveal-icon { background: #FAE8A8; }
+  .wrong .reveal-icon { background: #F8C8C8; }
+
+  .reveal-info { flex: 1; }
+
+  .reveal-category {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--muted2);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .correct .reveal-category { color: var(--green-dark); }
+  .partial .reveal-category { color: #8A7010; }
+  .wrong .reveal-category { color: #A83030; }
+
+  .reveal-answer {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+  }
+
+  .reveal-guess {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .reveal-pts {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--green);
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .partial .reveal-pts { color: #B07800; }
+  .wrong .reveal-pts { color: #A83030; }
+
+  .round-total {
+    background: var(--ink);
+    border-radius: 16px;
+    padding: 12px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .rt-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .rt-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: #fff;
+  }
+
+  /* ── SCREEN 5: FINAL CARD ────────────────────────── */
+  #s-final {
+    background: var(--ink);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .final-bg-stripes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .stripe {
+    position: absolute;
+    width: 200%;
+    height: 120px;
+    background: rgba(255,255,255,0.03);
+    transform: rotate(-18deg);
+  }
+
+  .stripe-1 { top: -30px; left: -50%; }
+  .stripe-2 { top: 120px; left: -50%; }
+  .stripe-3 { top: 260px; left: -50%; }
+
+  .final-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 22px 20px;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .final-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .final-brand {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .final-brand-yc { display: none; }
+
+  .final-brand-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .final-brand-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+  }
+
+  .final-tier-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 8px 0 4px;
+  }
+
+  .tier-left {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .tier-letter {
+    font-family: 'DM Serif Display', serif;
+    font-size: 96px;
+    color: var(--orange);
+    line-height: 0.85;
+    letter-spacing: -4px;
+  }
+
+  .tier-info {
+    padding-bottom: 8px;
+  }
+
+  .tier-word {
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .tier-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+    line-height: 1.3;
+    max-width: 100px;
+  }
+
+  .tier-score-block {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .tier-score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .tier-score-of {
+    display: block;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+    text-align: right;
+  }
+
+  .final-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 8px 0;
+  }
+
+  .final-breakdown {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .fb-item {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 8px 6px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .fb-cat {
+    font-size: 10px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .fb-pts {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--orange);
+    line-height: 1.1;
+  }
+
+  .fb-max {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 700;
+  }
+
+  .final-quip {
+    padding: 4px 0 10px;
+    position: relative;
+  }
+
+  .final-quip-open {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    color: var(--orange);
+    line-height: 0.6;
+    margin-bottom: 4px;
+    opacity: 0.9;
+  }
+
+  .final-quip-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 19px;
+    color: #fff;
+    line-height: 1.45;
+    letter-spacing: -0.2px;
+    padding: 0 4px;
+  }
+
+  .final-quip-close {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    color: var(--orange);
+    line-height: 0.3;
+    text-align: right;
+    opacity: 0.9;
+    margin-top: 6px;
+  }
+
+  .final-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .btn-save {
+    flex: 1;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-share {
+    flex: 1.6;
+    background: var(--orange);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 0.3px;
+    border: none;
+  }
+
+  .btn-share:active, .btn-save:active { transform: scale(0.97); }
+
+  .btn-replay {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.3);
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+  }
+
+  .challenge-cue {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 11px 14px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .challenge-text {
+    font-size: 13px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+  }
+
+  .challenge-link {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--orange);
+    cursor: pointer;
+    letter-spacing: -0.2px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(232,112,58,0.45);
+  }
+
+  /* ── CONFETTI ─────────────────────────────────────── */
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  @keyframes confetti-fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(800px) rotate(720deg); opacity: 0; }
+  }
+
+  /* ── SHARED BUTTON ───────────────────────────────── */
+  .primary-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--orange);
+    color: #fff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    border: none;
+    cursor: pointer;
+    border-radius: 16px;
+    letter-spacing: 0.3px;
+    transition: transform 0.1s;
+  }
+
+  .primary-btn:active { transform: scale(0.98); }
+
+  .primary-btn:disabled {
+    background: var(--sand);
+    color: var(--muted2);
+    cursor: not-allowed;
+  }
+
+  .secondary-btn {
+    width: 100%;
+    padding: 11px;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    border: 1.5px solid var(--sand);
+    cursor: pointer;
+    border-radius: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── CONFETTI ─────────────────────────────────────── */
+  @keyframes pop-in {
+    0% { transform: scale(0.7); opacity: 0; }
+    70% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .pop-in { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="stage-label">YC Roulette — Interactive Prototype</div>
+
+  <div class="phone">
+    <div class="phone-notch"></div>
+
+    <!-- SCREEN 1: HOME -->
+    <div class="screen active" id="s-home">
+      <div class="home-hero">
+        <div class="home-badge">Test your startup instincts</div>
+        <div class="home-title">YC<br><span>Roulette</span></div>
+        <div class="home-sub">How well do you know the startup world? Guess, score, brag.</div>
+        <div class="how-card">
+          <div class="how-row">
+            <div class="how-num">1</div>
+            <div class="how-text">Read a real YC startup brief — name, batch, and mission</div>
+          </div>
+          <div class="how-row">
+            <div class="how-num">2</div>
+            <div class="how-text">Guess: when did they last operate, how much they raised, and which industry</div>
+          </div>
+          <div class="how-row">
+            <div class="how-num">3</div>
+            <div class="how-text">Closer guesses = more points. Max 150 pts across 5 startups</div>
+          </div>
+        </div>
+      </div>
+      <div class="home-footer">
+        <div style="background:var(--cream2);border-radius:14px;padding:10px 16px;border:1.5px solid var(--sand);display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;font-weight:700;color:var(--muted)">5 startups per round</div>
+          <div style="width:1px;height:18px;background:var(--sand)"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted)">3 guesses each</div>
+          <div style="width:1px;height:18px;background:var(--sand)"></div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted)">Max 150 pts</div>
+        </div>
+        <button class="primary-btn" onclick="handleStartPlaying()">Start playing →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: STARTUP CARD -->
+    <div class="screen" id="s-card">
+      <div class="top-bar">
+        <div class="game-logo">YC <em>Roulette</em></div>
+        <div class="round-pill">Round 1 / 5</div>
+      </div>
+      <div class="progress-track">
+        <div class="prog-seg done"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+      </div>
+      <div class="card-body">
+        <div class="startup-card">
+          <div class="startup-card-top">
+            <div class="company-name">Hipmunk</div>
+            <div class="batch-tag"><span class="batch-tag-label">YC Batch</span> S10</div>
+          </div>
+          <div class="company-blurb">A travel search engine that sorted flights by "agony" — a clever blend of price, duration, and number of layovers.</div>
+          <div class="guess-preview-row">
+            <div class="guess-preview">
+              <div class="guess-preview-q">?</div>
+              <div class="guess-preview-lbl">Year</div>
+            </div>
+            <div class="guess-preview">
+              <div class="guess-preview-q">?</div>
+              <div class="guess-preview-lbl">Funding</div>
+            </div>
+            <div class="guess-preview">
+              <div class="guess-preview-q">?</div>
+              <div class="guess-preview-lbl">Industry</div>
+            </div>
+          </div>
+        </div>
+        <div class="info-strip">
+          <div class="info-dot"></div>
+          <div class="info-text">You'll make 3 guesses on the next screens — one at a time. Take your best shot!</div>
+        </div>
+      </div>
+      <div class="score-footer">
+        <div class="sf-item">
+          <div class="sf-lbl">Round</div>
+          <div class="sf-val">1 / 5</div>
+        </div>
+        <div style="flex:1"></div>
+        <div class="sf-item" style="text-align:right">
+          <div class="sf-lbl">Total score</div>
+          <div class="sf-val">0 pts</div>
+        </div>
+      </div>
+      <div style="padding:0 20px 20px;flex-shrink:0;">
+        <button class="primary-btn" onclick="startGuesses()">Make my guesses →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: GUESS STEPS -->
+    <div class="screen" id="s-guess">
+      <div class="top-bar">
+        <div class="game-logo">YC <em>Roulette</em></div>
+        <div class="round-pill">Round 1 / 5</div>
+      </div>
+      <div class="progress-track">
+        <div class="prog-seg done"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+      </div>
+
+      <div class="guess-step-container">
+
+        <!-- STEP 1: YEAR -->
+        <div class="guess-step active" id="step-year">
+          <div class="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-label">Guess 1 of 3</div>
+          </div>
+          <div class="context-mini">
+            <div class="company-name" style="font-size:17px">Hipmunk</div>
+            <div class="context-batch">S10</div>
+          </div>
+          <div class="guess-question">When was this startup<br>last active?</div>
+          <div class="year-big-display">
+            <div class="year-number" id="yr-display">2018</div>
+            <div class="year-hint">Drag the slider to your best guess</div>
+            <input type="range" class="styled-slider" id="yr-slider" min="2010" max="2025" value="2018" step="1">
+            <div class="year-range-labels">
+              <span>2010</span>
+              <span>2017</span>
+              <span>2025</span>
+            </div>
+          </div>
+          <div style="background:var(--cream2);border-radius:14px;padding:10px 14px;border:1.5px solid var(--sand);">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);line-height:1.5">
+              Still alive in 2025? Guess 2025. Shut down years ago? Drag it back.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: FUNDING -->
+        <div class="guess-step" id="step-fund">
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-label">Guess 2 of 3</div>
+          </div>
+          <div class="context-mini">
+            <div class="company-name" style="font-size:17px">Hipmunk</div>
+            <div class="context-batch">S10</div>
+          </div>
+          <div class="guess-question">How much did they<br>raise in total?</div>
+          <div class="fund-grid" id="fund-grid">
+            <div class="fund-option" data-val="seed" onclick="selectFund(this)">
+              <div>
+                <div class="fund-option-label">Seed only</div>
+                <div class="fund-option-sub">Under $500K</div>
+              </div>
+              <div class="fund-option-check">
+                <svg class="checkmark" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="fund-option" data-val="lt5m" onclick="selectFund(this)">
+              <div>
+                <div class="fund-option-label">Less than $5M</div>
+                <div class="fund-option-sub">Early-stage rounds</div>
+              </div>
+              <div class="fund-option-check">
+                <svg class="checkmark" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="fund-option" data-val="5to50m" onclick="selectFund(this)">
+              <div>
+                <div class="fund-option-label">$5M – $50M</div>
+                <div class="fund-option-sub">Series A / B territory</div>
+              </div>
+              <div class="fund-option-check">
+                <svg class="checkmark" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div class="fund-option" data-val="50mplus" onclick="selectFund(this)">
+              <div>
+                <div class="fund-option-label">$50M+</div>
+                <div class="fund-option-sub">Series C and beyond</div>
+              </div>
+              <div class="fund-option-check">
+                <svg class="checkmark" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: INDUSTRY -->
+        <div class="guess-step" id="step-ind">
+          <div class="step-indicator">
+            <div class="step-dot done"></div>
+            <div class="step-dot done"></div>
+            <div class="step-dot active"></div>
+            <div class="step-label">Guess 3 of 3</div>
+          </div>
+          <div class="context-mini">
+            <div class="company-name" style="font-size:17px">Hipmunk</div>
+            <div class="context-batch">S10</div>
+          </div>
+          <div class="guess-question">Which industry did<br>they operate in?</div>
+          <div class="ind-grid-2" id="ind-grid">
+            <div class="ind-option" data-val="consumer" onclick="selectInd(this)" role="button" aria-label="Consumer">
+              <div class="ind-icon" aria-hidden="true">🛍</div>
+              Consumer
+            </div>
+            <div class="ind-option" data-val="fintech" onclick="selectInd(this)" role="button" aria-label="Fintech">
+              <div class="ind-icon" aria-hidden="true">💳</div>
+              Fintech
+            </div>
+            <div class="ind-option" data-val="health" onclick="selectInd(this)" role="button" aria-label="Healthtech">
+              <div class="ind-icon" aria-hidden="true">🏥</div>
+              Healthtech
+            </div>
+            <div class="ind-option" data-val="devtools" onclick="selectInd(this)" role="button" aria-label="Dev Tools">
+              <div class="ind-icon" aria-hidden="true">🛠</div>
+              Dev Tools
+            </div>
+            <div class="ind-option" data-val="ecomm" onclick="selectInd(this)" role="button" aria-label="E-commerce">
+              <div class="ind-icon" aria-hidden="true">📦</div>
+              E-commerce
+            </div>
+            <div class="ind-option" data-val="saas" onclick="selectInd(this)" role="button" aria-label="Enterprise SaaS">
+              <div class="ind-icon" aria-hidden="true">🏢</div>
+              Ent. SaaS
+            </div>
+            <div class="ind-option" data-val="logistics" onclick="selectInd(this)" role="button" aria-label="Logistics">
+              <div class="ind-icon" aria-hidden="true">🚚</div>
+              Logistics
+            </div>
+            <div class="ind-option" data-val="ai" onclick="selectInd(this)" role="button" aria-label="AI/ML">
+              <div class="ind-icon" aria-hidden="true">🤖</div>
+              AI / ML
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="guess-footer">
+        <button class="primary-btn" id="guess-next-btn" onclick="nextGuessStep()">Next →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: REVEAL -->
+    <div class="screen" id="s-reveal">
+      <div class="top-bar">
+        <div class="game-logo">YC <em>Roulette</em></div>
+        <div class="round-pill">Round 1 / 5</div>
+      </div>
+      <div class="progress-track">
+        <div class="prog-seg done"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+        <div class="prog-seg"></div>
+      </div>
+      <div class="reveal-body">
+        <div class="reveal-company">
+          <div class="reveal-name">Hipmunk</div>
+          <div class="reveal-batch">S10</div>
+        </div>
+        <div class="reveal-rows">
+          <div class="reveal-row partial" id="rv-year">
+            <div class="reveal-icon">📅</div>
+            <div class="reveal-info">
+              <div class="reveal-category">Last active year</div>
+              <div class="reveal-answer">Shut down in 2020</div>
+              <div class="reveal-guess">You guessed: 2018 (within 2 yrs)</div>
+            </div>
+            <div class="reveal-pts">+5</div>
+          </div>
+          <div class="reveal-row correct" id="rv-fund">
+            <div class="reveal-icon">💰</div>
+            <div class="reveal-info">
+              <div class="reveal-category">Total funding</div>
+              <div class="reveal-answer">$58M raised ($5–50M)</div>
+              <div class="reveal-guess">You guessed: $5–50M ✓</div>
+            </div>
+            <div class="reveal-pts">+10</div>
+          </div>
+          <div class="reveal-row correct" id="rv-ind">
+            <div class="reveal-icon">🏭</div>
+            <div class="reveal-info">
+              <div class="reveal-category">Industry</div>
+              <div class="reveal-answer">Consumer</div>
+              <div class="reveal-guess">You guessed: Consumer ✓</div>
+            </div>
+            <div class="reveal-pts">+10</div>
+          </div>
+        </div>
+        <div class="round-total">
+          <div>
+            <div class="rt-label">Round score</div>
+            <div class="rt-score">25 / 30 pts</div>
+          </div>
+          <div style="text-align:right">
+            <div class="rt-label">Running total</div>
+            <div class="rt-score">25 pts</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 20px 20px;flex-shrink:0;">
+        <button class="primary-btn" onclick="goTo('s-final'); spawnConfetti();">See final score →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: FINAL CARD -->
+    <div class="screen" id="s-final">
+      <div class="final-bg-stripes">
+        <div class="stripe stripe-1"></div>
+        <div class="stripe stripe-2"></div>
+        <div class="stripe stripe-3"></div>
+      </div>
+      <div class="final-content">
+        <div class="final-brand-row">
+          <div class="final-brand">
+            <div class="final-brand-name">YC Roulette</div>
+            <div class="final-brand-tag">How well do you know startups?</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase">April 2026</div>
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.25);margin-top:2px">Round complete</div>
+          </div>
+        </div>
+
+        <div class="final-divider"></div>
+
+        <div class="final-tier-block">
+          <div class="tier-left">
+            <div class="tier-letter">A</div>
+            <div class="tier-info">
+              <div class="tier-word">Tier</div>
+              <div class="tier-label">TechCrunch power reader</div>
+            </div>
+          </div>
+          <div class="tier-score-block">
+            <div class="tier-score">112</div>
+            <span class="tier-score-of">/ 150 pts</span>
+          </div>
+        </div>
+
+        <div class="final-divider"></div>
+
+        <div class="final-breakdown">
+          <div class="fb-item">
+            <div class="fb-cat">Year</div>
+            <div class="fb-pts">38</div>
+            <div class="fb-max">/ 50 pts</div>
+          </div>
+          <div class="fb-item">
+            <div class="fb-cat">Funding</div>
+            <div class="fb-pts">35</div>
+            <div class="fb-max">/ 50 pts</div>
+          </div>
+          <div class="fb-item">
+            <div class="fb-cat">Industry</div>
+            <div class="fb-pts">39</div>
+            <div class="fb-max">/ 50 pts</div>
+          </div>
+        </div>
+
+        <div class="final-quip">
+          <div class="final-quip-open">"</div>
+          <div class="final-quip-text">Sharp instincts. You'd hold your own at Demo Day.</div>
+          <div class="final-quip-close">"</div>
+        </div>
+
+        <div class="final-actions">
+          <div class="btn-save">Save image</div>
+          <div class="btn-share">Share this →</div>
+        </div>
+        <div class="challenge-cue">
+          <div class="challenge-text">Think you can beat this? 👀</div>
+          <div class="challenge-link" onclick="resetGame()">Play at ycroulette.com →</div>
+        </div>
+        <div class="btn-replay" onclick="resetGame()">Play again</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="yc_dataset.js?v=1"></script>
+<script src="game.js?v=5"></script>
+</body>
+</html>

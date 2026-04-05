@@ -59,20 +59,19 @@ Each entry in `YC_STARTUPS`:
 
 ## Deploy Configuration (configured by /setup-deploy)
 - Platform: GitHub Pages
-- Production URL: https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME
+- Production URL: https://lkpvignesh.github.io/ycroulette
 - Deploy workflow: auto-deploy on push to main (via GitHub Pages)
 - Deploy status command: HTTP health check
 - Merge method: squash
 - Project type: web app (static HTML/JS, no build step)
-- Post-deploy health check: https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME
+- Post-deploy health check: https://lkpvignesh.github.io/ycroulette
 
 ### Custom deploy hooks
 - Pre-merge: none
 - Deploy trigger: automatic on push to main (GitHub Pages picks it up)
 - Deploy status: poll production URL
-- Health check: https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME
+- Health check: https://lkpvignesh.github.io/ycroulette
 
-> TODO: Replace YOUR_GITHUB_USERNAME and YOUR_REPO_NAME with your actual values.
 > GitHub Pages setup: repo Settings → Pages → Source: main branch → / (root)
 
 ## Skill routing

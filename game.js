@@ -95,6 +95,9 @@ let state = {
 
 let currentGuessStep = 0;
 
+// Tracks companies shown this browser session — cleared when pool runs low
+const playedNames = new Set();
+
 // ── SESSION CONSTRUCTION ──────────────────────────────────────────────────
 
 function getFoundingYear(batch) {
@@ -102,15 +105,26 @@ function getFoundingYear(batch) {
 }
 
 function buildSession() {
-  const anchorPool = YC_STARTUPS.filter(s => ANCHORS.includes(s.name));
-  const nonAnchorPool = YC_STARTUPS.filter(s => !ANCHORS.includes(s.name));
-
-  // Shuffle helpers
   const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+  const unplayed = s => !playedNames.has(s.name);
 
-  // Pick 1–2 anchors
-  const anchorCount = Math.random() < 0.5 ? 1 : 2;
-  const selectedAnchors = shuffle(anchorPool).slice(0, anchorCount);
+  let anchorPool = YC_STARTUPS.filter(s => ANCHORS.includes(s.name) && unplayed(s));
+  let nonAnchorPool = YC_STARTUPS.filter(s => !ANCHORS.includes(s.name) && unplayed(s));
+
+  // Reset played tracking when non-anchor pool runs low
+  if (nonAnchorPool.length < 15) {
+    playedNames.clear();
+    anchorPool = YC_STARTUPS.filter(s => ANCHORS.includes(s.name));
+    nonAnchorPool = YC_STARTUPS.filter(s => !ANCHORS.includes(s.name));
+  }
+
+  // If all anchors already played this session, reset just the anchor portion
+  if (anchorPool.length === 0) {
+    anchorPool = YC_STARTUPS.filter(s => ANCHORS.includes(s.name));
+  }
+
+  // Always exactly 1 anchor per game (max 2 as per design)
+  const selectedAnchors = shuffle(anchorPool).slice(0, 1);
 
   let session = [...selectedAnchors];
   const shuffledPool = shuffle(nonAnchorPool);
@@ -148,7 +162,12 @@ function buildSession() {
     }
   }
 
-  return shuffle(session).slice(0, 5);
+  const result = shuffle(session).slice(0, 5);
+
+  // Record all 5 companies as played for this session
+  result.forEach(s => playedNames.add(s.name));
+
+  return result;
 }
 
 // ── SCORING ENGINE ────────────────────────────────────────────────────────
@@ -537,10 +556,25 @@ function saveHighScore() {
 function captureScorecard() {
   const target = document.querySelector('#s-final .final-content');
   if (!target || !window.html2canvas) return Promise.reject('unavailable');
-  return html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#1A1410' })
+
+  // Hide UI controls so they don't appear in the captured image
+  const hide = target.querySelectorAll('.final-actions, .challenge-cue, .btn-replay');
+  hide.forEach(el => { el.dataset.ph = el.style.display; el.style.display = 'none'; });
+
+  return document.fonts.ready
+    .then(() => html2canvas(target, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#1A1410',
+      logging: false,
+    }))
     .then(canvas => new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject('blank'), 'image/png');
-    }));
+    }))
+    .finally(() => {
+      hide.forEach(el => { el.style.display = el.dataset.ph || ''; delete el.dataset.ph; });
+    });
 }
 
 function saveImage() {

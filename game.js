@@ -98,6 +98,10 @@ let currentGuessStep = 0;
 // Tracks companies shown this browser session — cleared when pool runs low
 const playedNames = new Set();
 
+// Pre-captured scorecard blob — populated when final screen loads so share
+// can call navigator.share() synchronously within the user gesture
+let scorecardBlob = null;
+
 // ── SESSION CONSTRUCTION ──────────────────────────────────────────────────
 
 function getFoundingYear(batch) {
@@ -540,6 +544,13 @@ function buildFinal() {
   // Wire share buttons
   document.querySelector('.btn-save').onclick = saveImage;
   document.querySelector('.btn-share').onclick = shareScore;
+
+  // Pre-capture the scorecard now so the blob is ready when Share is tapped.
+  // navigator.share() on mobile requires being called synchronously within a
+  // user gesture — if we capture inside the button handler (async), the gesture
+  // is expired by the time the Promise resolves and the share sheet won't open.
+  scorecardBlob = null;
+  captureScorecard().then(blob => { scorecardBlob = blob; }).catch(() => {});
 }
 
 function saveHighScore() {
@@ -610,33 +621,40 @@ function shareScore() {
     }
   }
 
+  function shareBlob(blob) {
+    const file = new File([blob], 'yc-roulette-score.png', { type: 'image/png' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      // Mobile: share the image via native share sheet (synchronous within user gesture)
+      navigator.share({ title: 'YC Roulette', text, files: [file] })
+        .catch(err => { if (err.name !== 'AbortError') shareTextOnly(); });
+    } else if (navigator.share) {
+      shareTextOnly();
+    } else {
+      // No share API — download the image
+      const imgUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = imgUrl;
+      a.download = 'yc-roulette-score.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
+      showToast('Image saved — share it anywhere!');
+    }
+  }
+
   if (!window.html2canvas) {
     shareTextOnly();
     return;
   }
 
-  captureScorecard()
-    .then(blob => {
-      const file = new File([blob], 'yc-roulette-score.png', { type: 'image/png' });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        // Mobile: share the image via native share sheet
-        navigator.share({ title: 'YC Roulette', text, files: [file] })
-          .catch(() => shareTextOnly());
-      } else if (navigator.share) {
-        // Desktop share API without file support — share text + link
-        shareTextOnly();
-      } else {
-        // No share API — download the image
-        const imgUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = imgUrl;
-        a.download = 'yc-roulette-score.png';
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
-        showToast('Image saved — share it anywhere!');
-      }
-    })
-    .catch(() => shareTextOnly());
+  if (scorecardBlob) {
+    // Blob already captured — call share synchronously within this user gesture
+    shareBlob(scorecardBlob);
+  } else {
+    // Fallback: capture now (share sheet may not open on strict iOS, but best-effort)
+    captureScorecard()
+      .then(blob => { scorecardBlob = blob; shareBlob(blob); })
+      .catch(() => shareTextOnly());
+  }
 }
 
 // ── CONFETTI ──────────────────────────────────────────────────────────────
@@ -663,6 +681,7 @@ function spawnConfetti() {
 // ── RESET / PLAY AGAIN ────────────────────────────────────────────────────
 
 function resetGame() {
+  scorecardBlob = null;
   state = {
     startups: buildSession(),
     currentIdx: 0,

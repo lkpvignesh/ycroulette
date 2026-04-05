@@ -599,16 +599,69 @@ function shareScore() {
   const score = state.totalScore;
   const tier = TIERS.find(t => score >= t.min) || TIERS[TIERS.length - 1];
   const text = `I scored ${score}/150 on YC Roulette — ${tier.label}. Can you beat it?`;
-  const url = 'https://ycroulette.com';
+  const url = 'https://lkpvignesh.github.io/ycroulette';
 
-  if (navigator.share) {
-    navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
-  } else {
-    const toCopy = `${text} ${url}`;
-    navigator.clipboard.writeText(toCopy)
-      .then(() => showToast('Copied to clipboard — paste to share'))
-      .catch(() => showToast('Screenshot this to save your score'));
+  const target = document.querySelector('#s-final .final-content');
+  const canShare = navigator.share && navigator.canShare;
+
+  if (!target || html2canvasFailed || !window.html2canvas || !html2canvasLoaded) {
+    // Fallback: share text + link only
+    if (navigator.share) {
+      navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(`${text} ${url}`)
+        .then(() => showToast('Copied to clipboard — paste to share'))
+        .catch(() => showToast('Screenshot this to share your score'));
+    }
+    return;
   }
+
+  html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#1A1410' })
+    .then(canvas => {
+      if (isCanvasBlank(canvas)) {
+        navigator.share
+          ? navigator.share({ title: 'YC Roulette', text, url }).catch(() => {})
+          : showToast('Screenshot this to share your score');
+        return;
+      }
+      canvas.toBlob(blob => {
+        if (!blob) {
+          navigator.share
+            ? navigator.share({ title: 'YC Roulette', text, url }).catch(() => {})
+            : showToast('Screenshot this to share your score');
+          return;
+        }
+        const file = new File([blob], 'yc-roulette-score.png', { type: 'image/png' });
+        if (canShare && navigator.canShare({ files: [file] })) {
+          // Share image + text (works on mobile)
+          navigator.share({ title: 'YC Roulette', text, files: [file] }).catch(() => {
+            // If image share fails, fall back to link share
+            navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
+          });
+        } else if (navigator.share) {
+          // Desktop or browser without file share — share text + link
+          navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
+        } else {
+          // No Web Share API — download the image instead
+          const imgUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = imgUrl;
+          a.download = 'yc-roulette-score.png';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
+          showToast('Image saved — share it anywhere!');
+        }
+      }, 'image/png');
+    })
+    .catch(() => {
+      if (navigator.share) {
+        navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(`${text} ${url}`)
+          .then(() => showToast('Copied to clipboard — paste to share'))
+          .catch(() => showToast('Screenshot this to share your score'));
+      }
+    });
 }
 
 // ── CONFETTI ──────────────────────────────────────────────────────────────

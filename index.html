@@ -35,51 +35,29 @@
     background: #F0E8DC;
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     font-family: 'Nunito', sans-serif;
-    padding: 24px 16px;
   }
 
   .stage {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    width: 100%;
   }
 
-  .stage-label {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #A89888;
-  }
-
-  /* ── PHONE SHELL ─────────────────────────────────── */
+  /* ── PHONE SHELL (removed — responsive layout) ───── */
   .phone {
-    width: 360px;
-    height: 740px;
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
     background: var(--cream);
-    border-radius: 44px;
-    border: 3px solid var(--sand);
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
   }
 
-  .phone-notch {
-    height: 28px;
-    background: var(--ink);
-    border-radius: 0 0 18px 18px;
-    width: 100px;
-    margin: 0 auto;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 10;
-  }
+  .phone-notch { display: none; }
 
   /* ── SCREEN SYSTEM ───────────────────────────────── */
   .screen {
@@ -1164,10 +1142,7 @@
 <body>
 
 <div class="stage">
-  <div class="stage-label">YC Roulette — Interactive Prototype</div>
-
   <div class="phone">
-    <div class="phone-notch"></div>
 
     <!-- SCREEN 1: HOME -->
     <div class="screen active" id="s-home">
@@ -1551,7 +1526,7 @@
         </div>
         <div class="challenge-cue">
           <div class="challenge-text">Think you can beat this? 👀</div>
-          <div class="challenge-link" onclick="resetGame()">Play at ycroulette.com →</div>
+          <div class="challenge-link" onclick="resetGame()">Play at lkpvignesh.github.io/ycroulette →</div>
         </div>
         <div class="btn-replay" onclick="resetGame()">Play again</div>
       </div>

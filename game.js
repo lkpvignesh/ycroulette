@@ -94,8 +94,6 @@ let state = {
 };
 
 let currentGuessStep = 0;
-let html2canvasLoaded = false;
-let html2canvasFailed = false;
 
 // ── SESSION CONSTRUCTION ──────────────────────────────────────────────────
 
@@ -382,8 +380,6 @@ function buildReveal() {
   state.scores.push(result);
   state.totalScore += result.total;
 
-  // Lazy-load html2canvas on first reveal
-  injectHtml2canvas();
 
   // Populate reveal rows
   const yearDiff = Math.abs(state.guesses.year - startup.lastActiveYear);
@@ -538,59 +534,28 @@ function saveHighScore() {
 
 // ── SHARE CARD ────────────────────────────────────────────────────────────
 
-function injectHtml2canvas() {
-  if (html2canvasLoaded || html2canvasFailed) return;
-  const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-  script.onload = () => { html2canvasLoaded = true; };
-  script.onerror = () => {
-    html2canvasFailed = true;
-    console.warn('html2canvas failed to load');
-  };
-  document.head.appendChild(script);
-}
-
-function isCanvasBlank(canvas) {
-  const ctx = canvas.getContext('2d');
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-  const total = canvas.width * canvas.height;
-  const step = Math.max(1, Math.floor(total / 100));
-  let blankCount = 0;
-  for (let i = 0; i < total; i += step) {
-    const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2], a = data[i * 4 + 3];
-    if (a === 0 || (r > 250 && g > 250 && b > 250)) blankCount++;
-  }
-  return blankCount / Math.ceil(total / step) > 0.9;
+function captureScorecard() {
+  const target = document.querySelector('#s-final .final-content');
+  if (!target || !window.html2canvas) return Promise.reject('unavailable');
+  return html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#1A1410' })
+    .then(canvas => new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject('blank'), 'image/png');
+    }));
 }
 
 function saveImage() {
-  if (html2canvasFailed || !window.html2canvas) {
+  if (!window.html2canvas) {
     showToast('Screenshot this to save your score');
     return;
   }
-  if (!html2canvasLoaded) {
-    showToast('Loading… try again in a moment');
-    return;
-  }
-
-  const target = document.querySelector('#s-final .final-content');
-  if (!target) { showToast('Screenshot this to save your score'); return; }
-
-  html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#1A1410' })
-    .then(canvas => {
-      if (isCanvasBlank(canvas)) {
-        showToast('Screenshot this to save your score');
-        return;
-      }
-      canvas.toBlob(blob => {
-        if (!blob) { showToast('Screenshot this to save your score'); return; }
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'yc-roulette-score.png';
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      }, 'image/png');
+  captureScorecard()
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'yc-roulette-score.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
     })
     .catch(() => showToast('Screenshot this to save your score'));
 }
@@ -601,11 +566,7 @@ function shareScore() {
   const text = `I scored ${score}/150 on YC Roulette — ${tier.label}. Can you beat it?`;
   const url = 'https://lkpvignesh.github.io/ycroulette';
 
-  const target = document.querySelector('#s-final .final-content');
-  const canShare = navigator.share && navigator.canShare;
-
-  if (!target || html2canvasFailed || !window.html2canvas || !html2canvasLoaded) {
-    // Fallback: share text + link only
+  function shareTextOnly() {
     if (navigator.share) {
       navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
     } else {
@@ -613,55 +574,35 @@ function shareScore() {
         .then(() => showToast('Copied to clipboard — paste to share'))
         .catch(() => showToast('Screenshot this to share your score'));
     }
+  }
+
+  if (!window.html2canvas) {
+    shareTextOnly();
     return;
   }
 
-  html2canvas(target, { scale: 2, useCORS: true, backgroundColor: '#1A1410' })
-    .then(canvas => {
-      if (isCanvasBlank(canvas)) {
-        navigator.share
-          ? navigator.share({ title: 'YC Roulette', text, url }).catch(() => {})
-          : showToast('Screenshot this to share your score');
-        return;
-      }
-      canvas.toBlob(blob => {
-        if (!blob) {
-          navigator.share
-            ? navigator.share({ title: 'YC Roulette', text, url }).catch(() => {})
-            : showToast('Screenshot this to share your score');
-          return;
-        }
-        const file = new File([blob], 'yc-roulette-score.png', { type: 'image/png' });
-        if (canShare && navigator.canShare({ files: [file] })) {
-          // Share image + text (works on mobile)
-          navigator.share({ title: 'YC Roulette', text, files: [file] }).catch(() => {
-            // If image share fails, fall back to link share
-            navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
-          });
-        } else if (navigator.share) {
-          // Desktop or browser without file share — share text + link
-          navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
-        } else {
-          // No Web Share API — download the image instead
-          const imgUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = imgUrl;
-          a.download = 'yc-roulette-score.png';
-          a.click();
-          setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
-          showToast('Image saved — share it anywhere!');
-        }
-      }, 'image/png');
-    })
-    .catch(() => {
-      if (navigator.share) {
-        navigator.share({ title: 'YC Roulette', text, url }).catch(() => {});
+  captureScorecard()
+    .then(blob => {
+      const file = new File([blob], 'yc-roulette-score.png', { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Mobile: share the image via native share sheet
+        navigator.share({ title: 'YC Roulette', text, files: [file] })
+          .catch(() => shareTextOnly());
+      } else if (navigator.share) {
+        // Desktop share API without file support — share text + link
+        shareTextOnly();
       } else {
-        navigator.clipboard.writeText(`${text} ${url}`)
-          .then(() => showToast('Copied to clipboard — paste to share'))
-          .catch(() => showToast('Screenshot this to share your score'));
+        // No share API — download the image
+        const imgUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = imgUrl;
+        a.download = 'yc-roulette-score.png';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(imgUrl), 5000);
+        showToast('Image saved — share it anywhere!');
       }
-    });
+    })
+    .catch(() => shareTextOnly());
 }
 
 // ── CONFETTI ──────────────────────────────────────────────────────────────
